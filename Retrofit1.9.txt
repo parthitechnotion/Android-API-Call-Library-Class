@@ -1,0 +1,107 @@
+	
+	Dependencies 
+	//compile 'com.squareup.okhttp3:okhttp:3.4.1'
+   compile 'com.squareup.retrofit:retrofit:1.9.0'
+    compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'com.google.code.gson:gson:2.5'
+   // compile 'com.squareup.okhttp:okhttp:2.0.0'
+   
+   
+   --------------
+   public class RestClient {
+
+    static Context context ;
+
+    private static ApiInterface REST_CLIENT;
+    static
+    {
+        setupRestClient();}
+
+    public RestClient(Context context)
+    {
+        this.context = context ; }
+
+    public RestClient()
+    {}
+    public static ApiInterface get(Context context){
+        RestClient.context = context ;
+        return REST_CLIENT;
+    }
+    public static ApiInterface post(Context context)
+    {
+        RestClient.context = context ;
+        return REST_CLIENT;
+    }
+    private static void setupRestClient()
+    {
+        OkHttpClient client = new OkHttpClient();
+        client.setConnectTimeout(10, TimeUnit.SECONDS);
+
+      Gson gson = new GsonBuilder().setPrettyPrinting()
+                .registerTypeAdapter(LoginBean.class,new MyDeserializer())
+              .registerTypeAdapter(NotificationBean.class,new MyDeserializerNotification())
+              .registerTypeAdapter(NotificationBean.class,new MyDeserializerRegistration())
+              .create();
+			  
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(ApiInterface.BASE_URL)
+                .setClient(new OkClient(client))
+                .setConverter(new GsonConverter(gson))
+                .setLogLevel(RestAdapter.LogLevel.FULL).setRequestInterceptor(new SessionRequest())
+                .build();
+        //.setConverter(new GsonConverter(gson))
+        REST_CLIENT = restAdapter.create(ApiInterface.class);
+   }
+  }
+------------------------
+
+public interface ApiService {
+
+    
+    String BASEURL = "baseurl";
+
+   @GET("suburl")
+    void addPharmacyStore(@Query("Id") String pId, @Query("TypeIds") String sid, Callback<TypeBean> callback);
+	
+	
+	
+	@FormUrlEncoded
+    @POST("suburl")
+    void addForm(@Field("para1") String minimum,
+                             @Field("para2") String charges,
+                             @Field("para3") String id,
+                             @Field("para4") String allow,
+                             @Field("para5") String till,
+                             @Field("para6") String hours,
+                             @Field("para7") String till2,
+                             Callback<Bean> callback);
+	
+	}
+
+----------------------------------------
+
+Call in activity 
+
+------------
+RestClient.post(Activity.this).addForm(Id, venId, about, landline, state, district, city, address, area, landmark,
+                pincode, TypeIds, logo, photo, delivery_mode_ids, timeSoltIds, homeAmt, deliveryAmt, returnPolicy, medDisc, medDiscPer,
+                genDisc, genDiscPer, payAllowIds, lat, lon, new Callback<EmployeeNew>() {
+
+                    @Override
+                    public void success(EmployeeNew register, Response response) {
+                        dismissProgress();
+                        Log.e("Profile Data :", response.toString());
+
+             
+
+                    }
+                    @Override
+                    public void failure(RetrofitError error) {
+                        dismissProgress();
+                        Log.e("Profile Data :", " failure");
+                    }
+                });
+				
+
+
+

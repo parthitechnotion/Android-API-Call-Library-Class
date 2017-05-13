@@ -1,0 +1,74 @@
+Dependencies 
+
+compile 'com.loopj.android:android-async-http:1.4.9'
+compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'com.google.code.gson:gson:2.6.2'
+
+
+-----------------------------------------
+import android.content.Context;
+import android.util.Log;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import cz.msebera.android.httpclient.entity.StringEntity;
+
+public class Asynch {
+    public static final String BASE_URL = "Baseurl/api/";
+
+    private static AsyncHttpClient client = new AsyncHttpClient();
+
+    public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.get(getAbsoluteUrl(url), params, responseHandler);
+    }
+
+
+    public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.post(getAbsoluteUrl(url), params, responseHandler);
+        Log.d("url", getAbsoluteUrl(url) + String.valueOf(params));
+
+    }
+
+    private static String getAbsoluteUrl(String relativeUrl) {
+        return BASE_URL + relativeUrl;
+    }
+}
+
+------------------------
+activity call
+----------------------
+
+    RequestParams para = new RequestParams();
+        Asynch.get("returnreasonlist/key/12345",para,new JsonHttpResponseHandler(){
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                super.onSuccess(statusCode, headers, response);
+                Log.e("Return reason Resp :", response.toString());
+                try {
+                    JSONObject jsonObj = new JSONObject(response.toString());
+                if (jsonObj.getString("success").equals("true")) {
+
+                    if (jsonObj.has("returns")) {
+
+                        JSONArray ReturnArray = jsonObj.getJSONArray("returns");
+                        for(int i =0;i<ReturnArray.length();i++){
+                            ReturnReason returnReason = new ReturnReason();
+                            JSONObject obj =  ReturnArray.getJSONObject(i);
+                            returnReason.setReturn_reason_id(obj.getString("return_reason_id"));
+                            returnReason.setName(obj.getString("name"));
+                            ReturnReasonList.add(returnReason);
+                        }
+                    }
+                }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                super.onFailure(statusCode, headers, responseString, throwable);
+                Log.e("order Product Error", String.valueOf(responseString));
+            }
+        });
